@@ -5,10 +5,10 @@ import os
 curr_path = os.getcwd()
 main_path =  os.path.join(curr_path, 'main.html')
 
-html = """
+index_html = """
 <html>
 <body>
-	<form method="get" action="login.wsgi">
+	<form method="get" action="/login">
 		<p>
 			Name: <input type=text name="name">
 		</p>
@@ -27,18 +27,27 @@ html = """
 </html>
 """
 
+login_html = """
+<html>
+<head> <title> Welcome %s </title> </head>
+<body>
+%s, You are now correctly logged in
+</body>
+</html>
+"""
+
 def application(environ, start_response):
 	
-	"""d = parse_qs(environ["QUERY_STRING"])
+
+	d = parse_qs(environ['QUERY_STRING'])
 	
-	age =  d.get('age', [''])[0]
-	hobbies =  d.get('hobbies',[])
+	name = d.get('name',[''])[0]
 	
-	age = escape(age)
-	hobbies = [escape(hobby) for hobby in hobbies]"""
-	
-	response_body = html #% (age or 'Empty', ', '.join(hobbies) or 'No Hobbies')
-	
+	if environ['PATH_INFO'] == '/':
+		response_body = index_html 
+	elif environ['PATH_INFO'] == '/login':
+		response_body = login_html % (name,name)	
+
 	status = '200 OK'
 	
 	response_headers = [
@@ -47,7 +56,7 @@ def application(environ, start_response):
 						]
 	start_response(status, response_headers)
 	
-	return [response_body]
+	return [response_body]	
 	
 httpd =  make_server('localhost',8052,application)
 httpd.serve_forever()
