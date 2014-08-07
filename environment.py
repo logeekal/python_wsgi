@@ -1,12 +1,18 @@
 from wsgiref.simple_server import make_server
+import socket
 
 def application(environ, callback_func):
+	hn = socket.gethostname()
+	
+	environ['HostName2'] = hn
 	
 	response_body =  ['%s : %s' % (key, value) for key, value in sorted(environ.items())]
 	
 	response_body = '\n'.join(response_body)
 	
 	status = '200 OK'
+	
+
 	
 	response_headers = [ 
 						('Content-Type' , 'text/plain'),
