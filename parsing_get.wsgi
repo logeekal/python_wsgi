@@ -27,7 +27,7 @@ index_html = """
 		</p>
 		
 		<p>
-			<input type=Submit value="Submit">
+			<input type=Submit value="Submit" >
 			<a href='/env_det'> Click </a> here to list environment details
 		</p>
 	</form>
@@ -40,6 +40,16 @@ login_html = """
 <head> <title> Welcome %s </title> </head>
 <body>
 %s, You are now correctly logged in
+
+<div Class = 'chatbox'>
+
+</div>
+
+<div class = 'send'>
+<textarea name='text'></textarea>
+<input type=button name='send' value="Send">
+</div>
+
 </body>
 </html>
 """
@@ -59,7 +69,6 @@ def display_env(environ,start_response):
 	start_response(status, response_headers)
 	
 	return [response_body]
-
 
 def index(environ, start_response):
 	HOST = environ['REMOTE_ADDR']
@@ -92,7 +101,6 @@ def index(environ, start_response):
 	start_response(status, response_headers)
 	
 	return [response_body]
-
 
 def login(environ, start_response):
 	HOST = environ['REMOTE_ADDR']
@@ -174,8 +182,10 @@ def login(environ, start_response):
 	print "+++++++++++ %s " % name
 	
 	partner_name = find_partner(name, session_id)
-	
-	partner_module = "<html><p> Found Partner .. You can start chatting %s </p></html>" % partner_name
+	if partner_name == '' :
+		partner_module = "<html><p> No partner Found </p></html>"
+	else:
+		partner_module = "<html><p> Found Partner .. You can start chatting %s </p></html>" % partner_name
 	
 	response_body =  layout_html + login_html % (str(name),str(name)) + str(partner_module)
 	
@@ -230,15 +240,20 @@ def show_404(environ, start_response):
 	start_response(status, response_headers)
 	return [response_body]
 
-def find_partner(user, session_id):
+def find_partner(user,session_id):
 	"""Finds the next available partner"""
 	client =  MongoClient()
 	coll = client.chatbox.usr_session
-	
+	print 'Now excluding Session ID ... %s' % str(session_id)
 	query_stmt = {'_id' : {'$ne' : ObjectId(session_id)}}
-	
+		
 	result = coll.find(query_stmt)
-	partner_name = result[0]['name']
+	
+	
+	if result.count() != 0 :
+		partner_name = result[0]['name']
+	else:
+		partner_name = ''
 	return partner_name
 
 def application(environ, start_response):
@@ -253,5 +268,5 @@ def application(environ, start_response):
 	else:
 		return show_404(environ,start_response)
 	
-httpd =  make_server('192.168.1.3',8052,application)
+httpd =  make_server('10.102.129.182',8052,application)
 httpd.serve_forever()
